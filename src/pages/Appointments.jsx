@@ -48,6 +48,10 @@ export function Appointments() {
     return doctors.filter((doctor) => doctor.specialtyId === filters.specialtyId);
   }, [doctors, filters.specialtyId]);
 
+  const sortedItems = useMemo(() => {
+  return [...items].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}, [items]);
+
   function setFilter(name, value) {
     setFilters((current) => ({
       ...current,
@@ -85,7 +89,7 @@ export function Appointments() {
       <LoadingError loading={loading} error={error} />
       {!loading && !items.length && <EmptyState />}
       <div className="card-list">
-        {items.map((item) => <AppointmentCard key={item.id} item={item} onSave={update} />)}
+        {sortedItems.map((item) => <AppointmentCard key={item.id} item={item} onSave={update} />)}
       </div>
     </section>
   );
