@@ -28,11 +28,6 @@ export function Specialties() {
     await load();
   }
 
-  async function inactivate(id) {
-    await api.deleteSpecialty(id);
-    await load();
-  }
-
   useEffect(() => { load(); }, []);
 
   return (
@@ -60,7 +55,7 @@ export function Specialties() {
               <span>ID <b>{item.id}</b></span>
               <span>Criado em <b>{formatDate(item.createdAt)}</b></span>
             </div>
-            {item.isActive && <button className="secondary-danger" onClick={() => inactivate(item.id)}><Trash2 size={15} />Inativar</button>}
+            
           </article>
         ))}
       </div>

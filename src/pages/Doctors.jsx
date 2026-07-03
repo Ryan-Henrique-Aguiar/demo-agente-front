@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarSearch, RefreshCcw, Save, Trash2 } from 'lucide-react';
+import { CalendarSearch, RefreshCcw, Save, X } from 'lucide-react';
 import { api } from '../api/client.js';
 import { PageHeader } from '../components/PageHeader.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
@@ -43,25 +43,32 @@ export function Doctors() {
     await load();
   }
 
-  async function inactivate(id) {
-    await api.deleteDoctor(id);
-    if (selectedDoctor?.id === id) setSelectedDoctor(null);
-    await load();
-  }
-
   async function showAvailability(doctor) {
+    // clicar no mesmo médico que já está aberto, fecha o painel
+    if (selectedDoctor?.id === doctor.id) {
+      setSelectedDoctor(null);
+      setAvailability(null);
+      return;
+    }
     setSelectedDoctor(doctor);
     setAvailability(null);
     try {
-      setAvailability(await api.doctorAvailability(doctor.id, availabilityDate, 7));
+      const result = await api.doctorAvailability(doctor.id, availabilityDate, 7);
+      setAvailability(result);
     } catch (err) {
       setError(err.message);
     }
   }
 
+  function closeAvailability() {
+    setSelectedDoctor(null);
+    setAvailability(null);
+  }
+
   useEffect(() => { load(); }, [specialtyId, isActive]);
   useEffect(() => {
     if (selectedDoctor) showAvailability(selectedDoctor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availabilityDate]);
 
   const activeSpecialties = useMemo(() => specialties.filter((item) => item.isActive), [specialties]);
@@ -104,38 +111,43 @@ export function Doctors() {
       <LoadingError loading={loading} error={error} />
       {!loading && !items.length && <EmptyState />}
       <div className="card-list">
-        {items.map((item) => (
-          <article className="data-card" key={item.id}>
-            <div className="card-top">
-              <div><strong>{item.crm}</strong><h3>{item.name}</h3></div>
-              <span className={`badge ${item.isActive ? 'badge-concluido' : 'badge-cancelado'}`}>{activeText(item.isActive)}</span>
-            </div>
-            <div className="details-grid">
-              <span>Especialidade <b>{item.specialty?.name || '-'}</b></span>
-              <span>Criado em <b>{formatDate(item.createdAt)}</b></span>
-              <span>Atualizado em <b>{formatDate(item.updatedAt)}</b></span>
-            </div>
-            <div className="actions-row">
-              <button onClick={() => showAvailability(item)}><CalendarSearch size={15} />Ver disponibilidade</button>
-              {item.isActive && <button className="secondary-danger" onClick={() => inactivate(item.id)}><Trash2 size={15} />Inativar</button>}
-            </div>
-          </article>
-        ))}
-      </div>
+        {items.map((item) => {
+          const isOpen = selectedDoctor?.id === item.id;
+          return (
+            <article className="data-card" key={item.id}>
+              <div className="card-top">
+                <div><strong>{item.crm}</strong><h3>{item.name}</h3></div>
+                <span className={`badge ${item.isActive ? 'badge-concluido' : 'badge-cancelado'}`}>{activeText(item.isActive)}</span>
+              </div>
+              <div className="details-grid">
+                <span>Especialidade <b>{item.specialty?.name || '-'}</b></span>
+                <span>Criado em <b>{formatDate(item.createdAt)}</b></span>
+                <span>Atualizado em <b>{formatDate(item.updatedAt)}</b></span>
+              </div>
+              <div className="actions-row">
+                <button onClick={() => showAvailability(item)}><CalendarSearch size={15} />Ver disponibilidade</button>
+              </div>
 
-      {selectedDoctor && (
-        <div className="hero-card availability-panel">
-          <h2>Disponibilidade — {selectedDoctor.name}</h2>
-          {!availability && <p>Carregando disponibilidade...</p>}
-          {availability && <AvailabilityContent data={availability} />}
-        </div>
-      )}
+              {isOpen && (
+                <div className="availability-panel-inline">
+                  <button className="close-btn" onClick={closeAvailability} aria-label="Fechar">
+                    <X size={16} />
+                  </button>
+                  <h4>Disponibilidade — {item.name}</h4>
+                  {!availability && <p>Carregando disponibilidade...</p>}
+                  {availability && <AvailabilityContent data={availability} />}
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }
 
 function AvailabilityContent({ data }) {
-  const days = Array.isArray(data) ? data : data.days || data.availability || [];
+  const days = Array.isArray(data) ? data : data.availability || data.days || [];
   if (!days.length) return <p>Nenhum slot disponível retornado para o período.</p>;
 
   return (
