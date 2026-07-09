@@ -85,3 +85,73 @@ select, input { border: 1px solid #cfd8ea; background: white; border-radius: 12p
 @media (max-width: 900px) {
   .metric-grid-wide, .availability-grid { grid-template-columns: 1fr; }
 }
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.schedule-row span:first-child {
+  min-width: 90px;
+  font-weight: 500;
+}
+
+.schedule-row .danger-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #c0392b;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.schedule-row .danger-btn:hover {
+  background: #fdecea;
+  border-radius: 4px;
+}
+
+.schedule-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.schedule-form select,
+.schedule-form input[type="time"] {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.error-text {
+  color: #c0392b;
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.nav button.nav-link-muted {
+  opacity: 0.55;
+  font-size: 13px;
+}
+
+.nav button.nav-link-muted:hover {
+  opacity: 0.85;
+}
+
+.nav button.nav-link-muted.active {
+  opacity: 1;
+}

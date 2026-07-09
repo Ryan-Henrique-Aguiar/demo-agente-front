@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarSearch, RefreshCcw, Save, X } from 'lucide-react';
+import { CalendarSearch, RefreshCcw, Save, X, Settings, Trash2, Plus } from 'lucide-react';
 import { api } from '../api/client.js';
 import { PageHeader } from '../components/PageHeader.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { LoadingError } from '../components/LoadingError.jsx';
 import { activeText, formatDate, formatOnlyDate, weekdayText } from '../utils/format.js';
+
+const WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
 export function Doctors() {
   const [items, setItems] = useState([]);
@@ -12,11 +14,19 @@ export function Doctors() {
   const [specialtyId, setSpecialtyId] = useState('');
   const [isActive, setIsActive] = useState('true');
   const [form, setForm] = useState({ name: '', crm: '', specialtyId: '' });
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [availability, setAvailability] = useState(null);
   const [availabilityDate, setAvailabilityDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // painel único: { doctorId, type: 'availability' | 'schedule' } ou null
+  const [openPanel, setOpenPanel] = useState(null);
+  const [availability, setAvailability] = useState(null);
+
+  // grade (schedules)
+  const [schedules, setSchedules] = useState([]);
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({ weekday: 'MONDAY', startTime: '08:00', endTime: '12:00' });
+  const [scheduleError, setScheduleError] = useState('');
 
   async function load() {
     setLoading(true);
@@ -43,14 +53,20 @@ export function Doctors() {
     await load();
   }
 
-  async function showAvailability(doctor) {
-    // clicar no mesmo médico que já está aberto, fecha o painel
-    if (selectedDoctor?.id === doctor.id) {
-      setSelectedDoctor(null);
-      setAvailability(null);
+  function closePanel() {
+    setOpenPanel(null);
+    setAvailability(null);
+    setSchedules([]);
+    setScheduleError('');
+  }
+
+  async function toggleAvailability(doctor) {
+    const isSame = openPanel?.doctorId === doctor.id && openPanel?.type === 'availability';
+    if (isSame) {
+      closePanel();
       return;
     }
-    setSelectedDoctor(doctor);
+    setOpenPanel({ doctorId: doctor.id, type: 'availability' });
     setAvailability(null);
     try {
       const result = await api.doctorAvailability(doctor.id, availabilityDate, 7);
@@ -60,16 +76,72 @@ export function Doctors() {
     }
   }
 
-  function closeAvailability() {
-    setSelectedDoctor(null);
-    setAvailability(null);
+  async function toggleSchedule(doctor) {
+    const isSame = openPanel?.doctorId === doctor.id && openPanel?.type === 'schedule';
+    if (isSame) {
+      closePanel();
+      return;
+    }
+    setOpenPanel({ doctorId: doctor.id, type: 'schedule' });
+    setScheduleForm({ weekday: 'MONDAY', startTime: '08:00', endTime: '12:00' });
+    setScheduleError('');
+    await loadSchedules(doctor.id);
+  }
+
+  async function loadSchedules(doctorId) {
+    setSchedulesLoading(true);
+    try {
+      const list = await api.doctorSchedules(doctorId);
+      setSchedules(list);
+    } catch (err) {
+      setScheduleError(err.message);
+    } finally {
+      setSchedulesLoading(false);
+    }
+  }
+
+  async function addSchedule(doctorId) {
+    setScheduleError('');
+    if (scheduleForm.startTime >= scheduleForm.endTime) {
+      setScheduleError('Horário final deve ser depois do inicial.');
+      return;
+    }
+    try {
+      await api.createDoctorSchedule(doctorId, scheduleForm);
+      await loadSchedules(doctorId);
+    } catch (err) {
+      setScheduleError(err.message);
+    }
+  }
+
+  async function removeSchedule(doctorId, scheduleId) {
+    setScheduleError('');
+    try {
+      await api.deleteDoctorSchedule(doctorId, scheduleId);
+      await loadSchedules(doctorId);
+    } catch (err) {
+      setScheduleError(err.message);
+    }
   }
 
   useEffect(() => { load(); }, [specialtyId, isActive]);
   useEffect(() => {
-    if (selectedDoctor) showAvailability(selectedDoctor);
+    if (openPanel?.type === 'availability') {
+      const doctor = items.find((d) => d.id === openPanel.doctorId);
+      if (doctor) toggleReloadAvailability(doctor);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availabilityDate]);
+
+  async function toggleReloadAvailability(doctor) {
+    setAvailability(null);
+    try {
+      const result = await api.doctorAvailability(doctor.id, availabilityDate, 7);
+      setAvailability(result);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   const activeSpecialties = useMemo(() => specialties.filter((item) => item.isActive), [specialties]);
 
@@ -112,7 +184,8 @@ export function Doctors() {
       {!loading && !items.length && <EmptyState />}
       <div className="card-list">
         {items.map((item) => {
-          const isOpen = selectedDoctor?.id === item.id;
+          const isAvailabilityOpen = openPanel?.doctorId === item.id && openPanel?.type === 'availability';
+          const isScheduleOpen = openPanel?.doctorId === item.id && openPanel?.type === 'schedule';
           return (
             <article className="data-card" key={item.id}>
               <div className="card-top">
@@ -125,12 +198,13 @@ export function Doctors() {
                 <span>Atualizado em <b>{formatDate(item.updatedAt)}</b></span>
               </div>
               <div className="actions-row">
-                <button onClick={() => showAvailability(item)}><CalendarSearch size={15} />Ver disponibilidade</button>
+                <button onClick={() => toggleAvailability(item)}><CalendarSearch size={15} />Ver disponibilidade</button>
+                <button onClick={() => toggleSchedule(item)}><Settings size={15} />Gerenciar grade</button>
               </div>
 
-              {isOpen && (
+              {isAvailabilityOpen && (
                 <div className="availability-panel-inline">
-                  <button className="close-btn" onClick={closeAvailability} aria-label="Fechar">
+                  <button className="close-btn" onClick={closePanel} aria-label="Fechar">
                     <X size={16} />
                   </button>
                   <h4>Disponibilidade — {item.name}</h4>
@@ -138,11 +212,63 @@ export function Doctors() {
                   {availability && <AvailabilityContent data={availability} />}
                 </div>
               )}
+
+              {isScheduleOpen && (
+                <SchedulePanel
+                  doctor={item}
+                  schedules={schedules}
+                  loading={schedulesLoading}
+                  error={scheduleError}
+                  form={scheduleForm}
+                  onFormChange={setScheduleForm}
+                  onAdd={() => addSchedule(item.id)}
+                  onRemove={(sid) => removeSchedule(item.id, sid)}
+                  onClose={closePanel}
+                />
+              )}
             </article>
           );
         })}
       </div>
     </section>
+  );
+}
+
+function SchedulePanel({ doctor, schedules, loading, error, form, onFormChange, onAdd, onRemove, onClose }) {
+  return (
+    <div className="availability-panel-inline schedule-panel">
+      <button className="close-btn" onClick={onClose} aria-label="Fechar">
+        <X size={16} />
+      </button>
+      <h4>Grade semanal — {doctor.name}</h4>
+
+      {loading && <p>Carregando grade...</p>}
+      {error && <p className="error-text">{error}</p>}
+
+      {!loading && (
+        <div className="schedule-list">
+          {schedules.length === 0 && <p>Nenhuma faixa cadastrada.</p>}
+          {schedules.map((s) => (
+            <div className="schedule-row" key={s.id}>
+              <span>{weekdayText(s.weekday)}</span>
+              <span>{s.startTime} - {s.endTime}</span>
+              <button className="danger-btn" onClick={() => onRemove(s.id)} aria-label="Excluir faixa">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="schedule-form">
+        <select value={form.weekday} onChange={(e) => onFormChange({ ...form, weekday: e.target.value })}>
+          {WEEKDAYS.map((day) => <option key={day} value={day}>{weekdayText(day)}</option>)}
+        </select>
+        <input type="time" value={form.startTime} onChange={(e) => onFormChange({ ...form, startTime: e.target.value })} />
+        <input type="time" value={form.endTime} onChange={(e) => onFormChange({ ...form, endTime: e.target.value })} />
+        <button onClick={onAdd}><Plus size={14} />Adicionar</button>
+      </div>
+    </div>
   );
 }
 
