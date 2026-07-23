@@ -13,7 +13,8 @@ async function request(path, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
     ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
-    ...(options.headers || {})
+    ...(options.headers || {}),
+    "ngrok-skip-browser-warning": "true"
   };
 
   const response = await fetch(`${API_URL}${path}`, {
