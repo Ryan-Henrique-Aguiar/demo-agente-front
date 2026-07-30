@@ -23,7 +23,7 @@ export function Opportunities() {
   useEffect(() => { load(); }, []);
 
   return (
-    <section>
+    <section className="page-opportunities">
       <PageHeader
         eyebrow="Fluxo 2"
         title="Comercial"

@@ -41,7 +41,7 @@ export function Tickets() {
   useEffect(() => { load(); }, [status, priority]);
 
   return (
-    <section>
+    <section className="page-tickets">
       <PageHeader
         eyebrow="Fluxo 3"
         title="Suporte"

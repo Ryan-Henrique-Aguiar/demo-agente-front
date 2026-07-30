@@ -146,7 +146,7 @@ export function Doctors() {
   const activeSpecialties = useMemo(() => specialties.filter((item) => item.isActive), [specialties]);
 
   return (
-    <section>
+    <section className="page-doctors">
       <PageHeader
         eyebrow="Cadastro médico"
         title="Médicos"

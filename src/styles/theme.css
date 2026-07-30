@@ -1,0 +1,118 @@
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #081028;
+  --surface: #101936;
+  --surface-strong: #142143;
+  --surface-hover: #19284d;
+  --surface-border: rgba(160, 174, 202, 0.18);
+
+  --text-primary: #f7f8ff;
+  --text-muted: #9bb4dd;
+  --border: rgba(160, 174, 202, 0.2);
+
+  --sidebar-top: #0a1633;
+  --sidebar-bottom: #13295a;
+  --sidebar-text: #f3f6ff;
+  --nav-text: #dfe7ff;
+
+  --purple: #cb3cff;
+  --purple-soft: rgba(203, 60, 255, 0.14);
+  --purple-glow: rgba(203, 60, 255, 0.32);
+
+  --green: #13bb6f;
+  --green-soft: rgba(19, 187, 111, 0.14);
+  --green-glow: rgba(19, 187, 111, 0.3);
+
+  --orange: #f6a123;
+  --orange-soft: rgba(246, 161, 35, 0.16);
+  --orange-glow: rgba(246, 161, 35, 0.3);
+
+  --blue: #5ac7ff;
+  --blue-soft: rgba(90, 199, 255, 0.14);
+  --blue-glow: rgba(90, 199, 255, 0.3);
+
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, 0.14);
+
+  --accent: var(--blue);
+  --accent-soft: var(--blue-soft);
+  --accent-glow: var(--blue-glow);
+
+  --button-bg: var(--accent);
+  --button-text: #07101f;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #eef3fb;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-strong: #ffffff;
+  --surface-hover: #f3f6fc;
+  --surface-border: rgba(93, 111, 148, 0.2);
+
+  --text-primary: #172033;
+  --text-muted: #60708d;
+  --border: #cfd8ea;
+
+  --sidebar-top: #f8faff;
+  --sidebar-bottom: #e9f0ff;
+  --sidebar-text: #172033;
+  --nav-text: #44516d;
+
+  --purple-soft: rgba(203, 60, 255, 0.11);
+  --purple-glow: rgba(203, 60, 255, 0.2);
+  --green-soft: rgba(19, 187, 111, 0.11);
+  --green-glow: rgba(19, 187, 111, 0.2);
+  --orange-soft: rgba(246, 161, 35, 0.13);
+  --orange-glow: rgba(246, 161, 35, 0.2);
+  --blue-soft: rgba(90, 199, 255, 0.13);
+  --blue-glow: rgba(90, 199, 255, 0.2);
+
+  --danger: #b42318;
+  --danger-soft: #fff1f1;
+
+  --button-text: #ffffff;
+  --shadow: 0 18px 50px rgba(31, 45, 82, 0.1);
+}
+
+/* Cor dominante da página ativa */
+.category-dashboard,
+.page-dashboard {
+  --accent: var(--blue);
+  --accent-soft: var(--blue-soft);
+  --accent-glow: var(--blue-glow);
+}
+
+.category-medical,
+.page-appointments,
+.page-doctors,
+.page-specialties {
+  --accent: var(--purple);
+  --accent-soft: var(--purple-soft);
+  --accent-glow: var(--purple-glow);
+}
+
+.category-commercial,
+.page-opportunities {
+  --accent: var(--green);
+  --accent-soft: var(--green-soft);
+  --accent-glow: var(--green-glow);
+}
+
+.category-support,
+.page-tickets {
+  --accent: var(--orange);
+  --accent-soft: var(--orange-soft);
+  --accent-glow: var(--orange-glow);
+}
+
+.category-updates,
+.page-changelog {
+  --accent: var(--blue);
+  --accent-soft: var(--blue-soft);
+  --accent-glow: var(--blue-glow);
+}

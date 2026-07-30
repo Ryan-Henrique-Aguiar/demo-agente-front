@@ -61,7 +61,7 @@ export function Appointments() {
   }
 
   return (
-    <section>
+    <section className="page-appointments">
       <PageHeader
         eyebrow="Fluxo 1"
         title="Agendamentos médicos"

@@ -5,7 +5,7 @@ export function Changelog() {
   const sections = parseChangelog(changelogRaw);
 
   return (
-    <section className="changelog-page">
+    <section className="changelog-page page-changelog">
       <PageHeader
         eyebrow="Histórico"
         title="Atualizações"

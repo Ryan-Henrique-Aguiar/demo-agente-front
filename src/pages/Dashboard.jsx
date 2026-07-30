@@ -33,16 +33,46 @@ export function Dashboard() {
     statusCount(data?.tickets, 'ABERTO');
 
   const cards = [
-    { label: 'Agendamentos médicos', value: data?.appointments?.total ?? 0, icon: CalendarCheck },
-    { label: 'Médicos', value: data?.doctors?.total ?? 0, icon: Stethoscope },
-    { label: 'Especialidades', value: data?.specialties?.total ?? 0, icon: UsersRound },
-    { label: 'Oportunidades', value: data?.opportunities?.total ?? 0, icon: TrendingUp },
-    { label: 'Chamados', value: data?.tickets?.total ?? 0, icon: Headset },
-    { label: 'Registros abertos', value: openTotal, icon: RefreshCcw }
-  ];
+  {
+    label: 'Agendamentos médicos',
+    value: data?.appointments?.total ?? 0,
+    icon: CalendarCheck,
+    category: 'medical'
+  },
+  {
+    label: 'Médicos',
+    value: data?.doctors?.total ?? 0,
+    icon: Stethoscope,
+    category: 'medical'
+  },
+  {
+    label: 'Especialidades',
+    value: data?.specialties?.total ?? 0,
+    icon: UsersRound,
+    category: 'medical'
+  },
+  {
+    label: 'Oportunidades',
+    value: data?.opportunities?.total ?? 0,
+    icon: TrendingUp,
+    category: 'commercial'
+  },
+  {
+    label: 'Chamados',
+    value: data?.tickets?.total ?? 0,
+    icon: Headset,
+    category: 'support'
+  },
+  {
+    label: 'Registros abertos',
+    value: openTotal,
+    icon: RefreshCcw,
+    category: 'dashboard'
+  }
+];
 
   return (
-    <section>
+    <section className="page-dashboard">
       <PageHeader
         eyebrow="Visão geral"
         title="Painel de demonstração"
@@ -53,9 +83,16 @@ export function Dashboard() {
       <div className="metric-grid metric-grid-wide">
         {cards.map((card) => {
           const Icon = card.icon;
+
           return (
-            <article className="metric-card" key={card.label}>
-              <Icon size={24} />
+            <article
+              className={`metric-card metric-${card.category}`}
+              key={card.label}
+            >
+              <div className="metric-icon">
+                <Icon size={24} />
+              </div>
+
               <span>{card.label}</span>
               <strong>{card.value}</strong>
             </article>

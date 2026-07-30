@@ -1,0 +1,27 @@
+.changelog-list {
+  display: grid;
+  gap: 18px;
+}
+
+.changelog-entry {
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+}
+
+.changelog-entry h3 {
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+
+.changelog-entry ul {
+  padding-left: 18px;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.changelog-entry li {
+  margin-bottom: 8px;
+}

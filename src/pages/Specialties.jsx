@@ -31,7 +31,7 @@ export function Specialties() {
   useEffect(() => { load(); }, []);
 
   return (
-    <section>
+    <section className="page-specialties">
       <PageHeader
         eyebrow="Cadastro médico"
         title="Especialidades"

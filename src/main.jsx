@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CalendarDays, ClipboardList, Headset, LayoutDashboard, RefreshCcw, Sparkles, Stethoscope, TrendingUp, UsersRound } from 'lucide-react';
-import './styles.css';
+import './styles/index.css';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { Appointments } from './pages/Appointments.jsx';
 import { Specialties } from './pages/Specialties.jsx';
@@ -11,21 +11,68 @@ import { Tickets } from './pages/Tickets.jsx';
 import { Changelog } from './pages/Changelog.jsx';
 
 const pages = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, component: Dashboard },
-  { id: 'appointments', label: 'Agendamentos médicos', icon: CalendarDays, component: Appointments },
-  { id: 'specialties', label: 'Especialidades', icon: UsersRound, component: Specialties },
-  { id: 'doctors', label: 'Médicos', icon: Stethoscope, component: Doctors },
-  { id: 'opportunities', label: 'Comercial', icon: TrendingUp, component: Opportunities },
-  { id: 'tickets', label: 'Suporte', icon: Headset, component: Tickets },
-  { id: 'changelog', label: 'Atualizações', icon: ClipboardList, component: Changelog, muted: true }
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    component: Dashboard,
+    category: 'dashboard'
+  },
+  {
+    id: 'appointments',
+    label: 'Agendamentos médicos',
+    icon: CalendarDays,
+    component: Appointments,
+    category: 'medical'
+  },
+  {
+    id: 'specialties',
+    label: 'Especialidades',
+    icon: UsersRound,
+    component: Specialties,
+    category: 'medical'
+  },
+  {
+    id: 'doctors',
+    label: 'Médicos',
+    icon: Stethoscope,
+    component: Doctors,
+    category: 'medical'
+  },
+  {
+    id: 'opportunities',
+    label: 'Comercial',
+    icon: TrendingUp,
+    component: Opportunities,
+    category: 'commercial'
+  },
+  {
+    id: 'tickets',
+    label: 'Suporte',
+    icon: Headset,
+    component: Tickets,
+    category: 'support'
+  },
+  {
+    id: 'changelog',
+    label: 'Atualizações',
+    icon: ClipboardList,
+    component: Changelog,
+    category: 'updates',
+    muted: true
+  }
 ];
 
 function App() {
   const [active, setActive] = useState('dashboard');
-  const ActivePage = pages.find((page) => page.id === active)?.component ?? Dashboard;
+
+  const activePage =
+    pages.find((page) => page.id === active) ?? pages[0];
+
+  const ActivePage = activePage.component;
 
   return (
-    <div className="app-shell">
+   <div className={`app-shell category-${activePage.category}`}>
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon"><Sparkles size={22} /></div>
@@ -35,22 +82,36 @@ function App() {
           </div>
         </div>
 
-        <nav className="nav">
-          {pages.map((page) => {
-            const Icon = page.icon;
-            const classes = [
-              active === page.id ? 'active' : '',
-              page.muted ? 'nav-link-muted' : ''
-            ].filter(Boolean).join(' ');
-            return (
-              <button key={page.id} className={classes} onClick={() => setActive(page.id)}>
-                <Icon size={18} />
-                {page.label}
-              </button>
-            );
-          })}
-        </nav>
+              <nav className="nav">
+                {pages.map((page) => {
+                  const Icon = page.icon;
 
+                  const classes = [
+                    active === page.id ? 'active' : '',
+                    page.muted ? 'nav-link-muted' : '',
+                    `nav-category-${page.category}`
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
+
+              return (
+                <button
+                  key={page.id}
+                  type="button"
+                  className={classes}
+                  onClick={() => setActive(page.id)}
+            >
+              <span className="nav-icon">
+                <Icon size={18} />
+              </span>
+
+              <span className="nav-label">
+                {page.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
         <div className="demo-note">
           <RefreshCcw size={18} />
           <p>Sem atualização em tempo real. Use F5 ou o botão de atualizar nas telas.</p>
