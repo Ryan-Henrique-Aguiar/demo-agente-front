@@ -22,6 +22,8 @@
   filter: brightness(1.06);
 }
 
+
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(160px, 1fr));

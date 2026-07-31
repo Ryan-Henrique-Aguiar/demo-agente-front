@@ -1,5 +1,18 @@
 # Changelog
 
+
+## 1.1.0 - 2026-07-31
+
+## 💠 Aplicação
+- Adicionado a funcionalidade de tema Dark e Light
+- Adicionado a funcionaliade de gerar um arquivo CSV para os atendimentos Comercias dos agentes, o arquivo é gerado somente de um agente específico e não todos atendimentos
+
+## 👤 Agente Thomas
+- Correções de comportamento e adicionado a capacidade de transbordo para atendimento por texto via whatsapp
+
+## 👤 Agente Reinaldo
+- Correções de comportamento e atualização de Guardrails
+
 ## 1.0.2 — 2026-07-09
 
 ## 💠 Aplicação

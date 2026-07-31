@@ -9,6 +9,36 @@ function cleanFilters(filters = {}) {
   return params.toString();
 }
 
+async function downloadFile(path, filename) {
+  const headers = {
+    ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+    'ngrok-skip-browser-warning': 'true'
+  };
+
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'GET',
+    headers
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Erro HTTP ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
 async function request(path, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
@@ -70,6 +100,14 @@ export const api = {
   },
   opportunity: (id) => request(`/opportunities/${id}`),
   updateOpportunity: (id, payload) => request(`/opportunities/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  opportunityByAgentCsv: (filters = {}) => {
+  const query = cleanFilters(filters);
+
+  return downloadFile(
+    `/opportunities/csv${query ? `?${query}` : ''}`,
+    'oportunidades.csv'
+  );
+  },
 
   tickets: ({ status = '', priority = '' } = {}) => {
     const query = cleanFilters({ status, priority });
@@ -77,4 +115,7 @@ export const api = {
   },
   ticketByCode: (code) => request(`/tickets/${code}`),
   updateTicket: (id, payload) => request(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+
+
+  
 };
