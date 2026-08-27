@@ -164,6 +164,12 @@
   --nav-glow: var(--blue-glow) !important;
 }
 
+.nav-category-hotel {
+  --nav-accent: #f28f86 !important;
+  --nav-soft: rgba(242, 143, 134, 0.16) !important;
+  --nav-glow: rgba(242, 143, 134, 0.3) !important;
+}
+
 .nav button.nav-link-muted {
   opacity: 0.58;
   font-size: 13px;

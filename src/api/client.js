@@ -116,6 +116,20 @@ export const api = {
   ticketByCode: (code) => request(`/tickets/${code}`),
   updateTicket: (id, payload) => request(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
 
+  ,hotels: () => request('/hotels')
+  ,hotel: (id) => request(`/hotels/${id}`)
+  ,createHotel: (payload) => request('/hotels', { method: 'POST', body: JSON.stringify(payload) })
+  ,updateHotel: (id, payload) => request(`/hotels/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+  ,createHotelRoom: (hotelId, payload) => request(`/hotels/${hotelId}/rooms`, { method: 'POST', body: JSON.stringify(payload) })
+  ,hotelAvailability: (payload) => request('/hotel-reservations/availability', { method: 'POST', body: JSON.stringify(payload) })
+  ,hotelReservations: (filters = {}) => {
+    const query = cleanFilters(filters);
+    return request(`/hotel-reservations${query ? `?${query}` : ''}`);
+  }
+  ,hotelReservation: (id) => request(`/hotel-reservations/${id}`)
+  ,createHotelReservation: (payload) => request('/hotel-reservations', { method: 'POST', body: JSON.stringify(payload) })
+  ,updateHotelReservation: (id, payload) => request(`/hotel-reservations/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+
 
   
 };

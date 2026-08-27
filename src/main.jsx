@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { CalendarDays, ClipboardList, Headset, LayoutDashboard, RefreshCcw, Sparkles, Stethoscope, TrendingUp, UsersRound } from 'lucide-react';
+import { BedDouble, CalendarDays, ClipboardList, Headset, LayoutDashboard, RefreshCcw, Sparkles, Stethoscope, TrendingUp, UsersRound } from 'lucide-react';
 import './styles/index.css';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { Appointments } from './pages/Appointments.jsx';
@@ -9,6 +9,7 @@ import { Doctors } from './pages/Doctors.jsx';
 import { Opportunities } from './pages/Opportunities.jsx';
 import { Tickets } from './pages/Tickets.jsx';
 import { Changelog } from './pages/Changelog.jsx';
+import { Hotel } from './pages/Hotel.jsx';
 
 const pages = [
   {
@@ -52,6 +53,13 @@ const pages = [
     icon: Headset,
     component: Tickets,
     category: 'support'
+  },
+  {
+    id: 'hotel',
+    label: 'Hotel',
+    icon: BedDouble,
+    component: Hotel,
+    category: 'hotel'
   },
   {
     id: 'changelog',

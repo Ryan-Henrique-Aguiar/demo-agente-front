@@ -116,3 +116,10 @@
   --accent-soft: var(--blue-soft);
   --accent-glow: var(--blue-glow);
 }
+
+.category-hotel,
+.page-hotel {
+  --accent: #f28f86;
+  --accent-soft: rgba(242, 143, 134, 0.16);
+  --accent-glow: rgba(242, 143, 134, 0.3);
+}
