@@ -5,6 +5,7 @@ import { PageHeader } from '../components/PageHeader.jsx';
 import { StatusBadge } from '../components/StatusBadge.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { LoadingError } from '../components/LoadingError.jsx';
+import { DetailsModal } from '../components/DetailsModal.jsx';
 import { formatDate, formatOnlyDate } from '../utils/format.js';
 
 const statuses = ['', 'ABERTO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO'];
@@ -44,6 +45,7 @@ export function Appointments() {
   const [filters, setFilters] = useState({ status: '', specialtyId: '', doctorId: '', date: '' });
   const [view, setView] = useState('calendar');
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -132,17 +134,34 @@ export function Appointments() {
       <LoadingError loading={loading} error={error} />
       {!loading && !items.length && <EmptyState />}
       {view === 'calendar' ? (
-        <AppointmentCalendar days={days} month={calendarMonth} items={items} onPrevious={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} onNext={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} />
+        <AppointmentCalendar days={days} month={calendarMonth} items={items} onSelect={setSelectedAppointment} onPrevious={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} onNext={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} />
       ) : (
         <div className="card-list">
           {sortedItems.map((item) => <AppointmentCard key={item.id} item={item} onSave={update} />)}
         </div>
       )}
+      {selectedAppointment && (
+        <DetailsModal title={selectedAppointment.patientName} eyebrow={selectedAppointment.code} onClose={() => setSelectedAppointment(null)}>
+          <StatusBadge value={selectedAppointment.status} />
+          <div className="details-grid modal-details-grid">
+            <span>Especialidade <b>{selectedAppointment.specialty?.name || '-'}</b></span>
+            <span>Médico <b>{selectedAppointment.doctor?.name || '-'}</b></span>
+            <span>CRM <b>{selectedAppointment.doctor?.crm || '-'}</b></span>
+            <span>Data <b>{formatOnlyDate(selectedAppointment.appointmentDate)}</b></span>
+            <span>Horário <b>{selectedAppointment.startTime || '-'} - {selectedAppointment.endTime || '-'}</b></span>
+            <span>Telefone <b>{selectedAppointment.phone || '-'}</b></span>
+            <span>E-mail <b>{selectedAppointment.email || '-'}</b></span>
+            <span>Criado em <b>{formatDate(selectedAppointment.createdAt)}</b></span>
+          </div>
+          <p className="reason">{selectedAppointment.reason || 'Sem motivo informado.'}</p>
+          {selectedAppointment.notes && <p className="modal-note"><strong>Notas internas</strong>{selectedAppointment.notes}</p>}
+        </DetailsModal>
+      )}
     </section>
   );
 }
 
-function AppointmentCalendar({ days, month, items, onPrevious, onNext }) {
+function AppointmentCalendar({ days, month, items, onSelect, onPrevious, onNext }) {
   const today = new Date();
 
   return (
@@ -167,7 +186,7 @@ function AppointmentCalendar({ days, month, items, onPrevious, onNext }) {
               <span className="calendar-day-number">{day.getDate()}</span>
               <div className="calendar-events">
                 {dayItems.map((item) => (
-                  <div className="calendar-event" key={item.id} title={`${item.patientName} - ${item.startTime || 'Horário não informado'}`}>
+                  <div className="calendar-event" key={item.id} role="button" tabIndex="0" onClick={() => onSelect(item)} onKeyDown={(event) => event.key === 'Enter' && onSelect(item)} title={`${item.patientName} - ${item.startTime || 'Horário não informado'}`}>
                     <strong>{item.startTime || '--:--'}</strong>
                     <span>{item.patientName}</span>
                     <small>{item.doctor?.name || item.specialty?.name || 'Agendamento'}</small>
