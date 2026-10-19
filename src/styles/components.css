@@ -568,7 +568,8 @@ textarea:focus {
   white-space: nowrap;
 }
 
-.badge-concluido {
+.badge-concluido,
+.badge-confirmado {
   color: #117943;
   background: #e7f8ef;
 }

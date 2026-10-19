@@ -94,6 +94,16 @@ export const api = {
   createAppointment: (payload) => request('/appointments', { method: 'POST', body: JSON.stringify(payload) }),
   updateAppointment: (id, payload) => request(`/appointments/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
 
+  examTypes: (filters = {}) => {
+    const query = cleanFilters(filters);
+    return request(`/exam-types${query ? `?${query}` : ''}`);
+  },
+  createExamType: (payload) => request('/exam-types', { method: 'POST', body: JSON.stringify(payload) }),
+  updateExamType: (id, payload) => request(`/exam-types/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  createExamSchedule: (id, payload) => request(`/exam-types/${id}/schedules`, { method: 'POST', body: JSON.stringify(payload) }),
+  deleteExamSchedule: (id, scheduleId) => request(`/exam-types/${id}/schedules/${scheduleId}`, { method: 'DELETE' }),
+  examAvailability: (id, from, days = 7) => request(`/exam-types/${id}/availability?from=${from}&days=${days}`),
+
   opportunities: (filters = {}) => {
     const query = cleanFilters(filters);
     return request(`/opportunities${query ? `?${query}` : ''}`);

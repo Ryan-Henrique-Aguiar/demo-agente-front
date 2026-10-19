@@ -73,6 +73,14 @@
   resize: vertical;
 }
 
+.hotel-form .exam-preparation {
+  grid-column: span 2;
+}
+
+@media (max-width: 850px) {
+  .hotel-form .exam-preparation { grid-column: 1 / -1; }
+}
+
 .hotel-form label {
   display: grid;
   gap: 5px;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BedDouble, CalendarDays, ClipboardList, Headset, LayoutDashboard, RefreshCcw, Sparkles, Stethoscope, TrendingUp, UsersRound } from 'lucide-react';
+import { BedDouble, CalendarDays, ClipboardList, FlaskConical, Headset, LayoutDashboard, RefreshCcw, Sparkles, Stethoscope, TrendingUp, UsersRound } from 'lucide-react';
 import './styles/index.css';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { Appointments } from './pages/Appointments.jsx';
@@ -10,6 +10,7 @@ import { Opportunities } from './pages/Opportunities.jsx';
 import { Tickets } from './pages/Tickets.jsx';
 import { Changelog } from './pages/Changelog.jsx';
 import { Hotel } from './pages/Hotel.jsx';
+import { Exams } from './pages/Exams.jsx';
 
 const pages = [
   {
@@ -38,6 +39,13 @@ const pages = [
     label: 'Médicos',
     icon: Stethoscope,
     component: Doctors,
+    category: 'medical'
+  },
+  {
+    id: 'exams',
+    label: 'Exames',
+    icon: FlaskConical,
+    component: Exams,
     category: 'medical'
   },
   {

@@ -8,7 +8,7 @@ import { LoadingError } from '../components/LoadingError.jsx';
 import { DetailsModal } from '../components/DetailsModal.jsx';
 import { formatDate, formatOnlyDate } from '../utils/format.js';
 
-const statuses = ['', 'ABERTO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO'];
+const statuses = ['', 'ABERTO', 'CONFIRMADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO'];
 const calendarWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 function dateKey(value) {
