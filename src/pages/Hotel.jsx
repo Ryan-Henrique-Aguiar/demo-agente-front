@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader.jsx';
 import { StatusBadge } from '../components/StatusBadge.jsx';
 import { DetailsModal } from '../components/DetailsModal.jsx';
 import { formatDate, formatOnlyDate } from '../utils/format.js';
+import { reservationColorIndex, reservationMonthSegments } from '../utils/reservationCalendar.js';
 
 const emptyHotel = { name: '', city: '', state: '' };
 const emptyRoom = { name: '', description: '', price: '' };
@@ -17,20 +18,9 @@ function money(value) {
   return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function dateKey(value) {
-  return String(value || '').split('T')[0];
-}
-
 function calendarDays(date) {
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  const leadingDays = firstDay.getDay();
-  const totalDays = Math.ceil((leadingDays + lastDay.getDate()) / 7) * 7;
-
-  return Array.from({ length: totalDays }, (_, index) => {
-    const day = index - leadingDays + 1;
-    return new Date(date.getFullYear(), date.getMonth(), day);
-  });
+  const count = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  return Array.from({ length: count }, (_, index) => new Date(date.getFullYear(), date.getMonth(), index + 1));
 }
 
 function localDateKey(date) {
@@ -41,7 +31,8 @@ function localDateKey(date) {
 }
 
 function monthLabel(date) {
-  return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
+  const label = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
+  return label[0].toUpperCase() + label.slice(1);
 }
 
 export function Hotel() {
@@ -164,6 +155,7 @@ function ReservationsTab({ reservations, hotels, rooms, form, onChange, onSubmit
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const availableRooms = rooms.filter((room) => room.hotel.id === form.hotelId);
   const days = useMemo(() => calendarDays(calendarMonth), [calendarMonth]);
+  const setMonth = (year, monthIndex) => setCalendarMonth(new Date(year, monthIndex, 1));
 
   return (
     <>
@@ -186,7 +178,7 @@ function ReservationsTab({ reservations, hotels, rooms, form, onChange, onSubmit
         </div>
       </div>
       {view === 'calendar' ? (
-        <HotelReservationsCalendar days={days} month={calendarMonth} reservations={reservations} onSelect={onSelect} onPrevious={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} onNext={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} />
+        <HotelReservationsCalendar days={days} month={calendarMonth} rooms={rooms} reservations={reservations} onSelect={onSelect} onMonthChange={setMonth} onToday={() => setCalendarMonth(new Date())} onPrevious={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} onNext={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} />
       ) : (
         <div className="card-list">{!reservations.length ? <EmptyState /> : reservations.map((reservation) => <article className="data-card" key={reservation.id}><ReservationCard reservation={reservation} onCancel={onCancel} /></article>)}</div>
       )}
@@ -194,35 +186,70 @@ function ReservationsTab({ reservations, hotels, rooms, form, onChange, onSubmit
   );
 }
 
-function HotelReservationsCalendar({ days, month, reservations, onSelect, onPrevious, onNext }) {
+function HotelReservationsCalendar({ days, month, rooms, reservations, onSelect, onMonthChange, onToday, onPrevious, onNext }) {
   const today = new Date();
+  const roomList = [...rooms].sort((a, b) => a.hotel.name.localeCompare(b.hotel.name, 'pt-BR') || a.name.localeCompare(b.name, 'pt-BR'));
+  const reservationYears = reservations.flatMap((reservation) => [Number(String(reservation.checkIn).slice(0, 4)), Number(String(reservation.checkOut).slice(0, 4))]).filter((year) => year >= 1900 && year <= 2100);
+  const firstYear = Math.min(today.getFullYear() - 2, month.getFullYear(), ...reservationYears);
+  const lastYear = Math.max(today.getFullYear() + 2, month.getFullYear(), ...reservationYears);
+  const years = Array.from({ length: lastYear - firstYear + 1 }, (_, index) => firstYear + index);
+  const monthNames = Array.from({ length: 12 }, (_, index) => monthLabel(new Date(month.getFullYear(), index, 1)).split(' de ')[0]);
+  const reservationsByRoom = new Map();
+  reservations.forEach((reservation) => {
+    const roomId = reservation.roomId || reservation.room?.id;
+    if (!roomId) return;
+    if (!reservationsByRoom.has(roomId)) reservationsByRoom.set(roomId, []);
+    reservationsByRoom.get(roomId).push(reservation);
+  });
+  const dayWidth = 48;
+  const roomWidth = 174;
 
   return (
-    <div className="appointment-calendar">
-      <div className="calendar-header">
-        <button className="calendar-nav" onClick={onPrevious} aria-label="Mês anterior"><ChevronLeft size={18} /></button>
-        <h2>{monthLabel(month)}</h2>
-        <button className="calendar-nav" onClick={onNext} aria-label="Próximo mês"><ChevronRight size={18} /></button>
+    <div className="appointment-calendar hotel-reservations-calendar" aria-label={`Reservas de ${monthLabel(month)}`}>
+      <div className="hotel-timeline-toolbar">
+        <button type="button" className="calendar-nav" onClick={onPrevious} aria-label="Mês anterior"><ChevronLeft size={18} /></button>
+        <label className="sr-only" htmlFor="hotel-calendar-month">Mês do calendário</label>
+        <select id="hotel-calendar-month" value={month.getMonth()} onChange={(event) => onMonthChange(month.getFullYear(), Number(event.target.value))}>
+          {monthNames.map((name, index) => <option value={index} key={index}>{name}</option>)}
+        </select>
+        <label className="sr-only" htmlFor="hotel-calendar-year">Ano do calendário</label>
+        <select id="hotel-calendar-year" value={month.getFullYear()} onChange={(event) => onMonthChange(Number(event.target.value), month.getMonth())}>
+          {years.map((year) => <option value={year} key={year}>{year}</option>)}
+        </select>
+        <button type="button" className="calendar-nav" onClick={onNext} aria-label="Próximo mês"><ChevronRight size={18} /></button>
+        <button type="button" className="hotel-today-button" onClick={onToday}>Hoje</button>
       </div>
-      <div className="calendar-weekdays">{calendarWeekdays.map((weekday) => <span key={weekday}>{weekday}</span>)}</div>
-      <div className="calendar-grid">
-        {days.map((day) => {
-          const dayKey = localDateKey(day);
-          const dayReservations = reservations.filter((reservation) => dateKey(reservation.checkIn) === dayKey);
-          const isCurrentMonth = day.getMonth() === month.getMonth();
-          const isToday = day.toDateString() === today.toDateString();
-
-          return <div className={`calendar-day${isCurrentMonth ? '' : ' muted'}${isToday ? ' today' : ''}`} key={dayKey}>
-            <span className="calendar-day-number">{day.getDate()}</span>
-            <div className="calendar-events">
-              {dayReservations.map((reservation) => <div className="calendar-event" key={reservation.id} role="button" tabIndex="0" onClick={() => onSelect(reservation)} onKeyDown={(event) => event.key === 'Enter' && onSelect(reservation)} title={`${reservation.guestName} - ${formatOnlyDate(reservation.checkIn)}`}>
-                <strong>{formatOnlyDate(reservation.checkIn)}</strong>
-                <span>{reservation.guestName}</span>
-                <small>{reservation.hotel?.name || reservation.room?.name || 'Reserva'}</small>
-              </div>)}
-            </div>
-          </div>;
-        })}
+      <div className="hotel-calendar-guide">
+        <span><i className="hotel-guide-swatch" />Uma cor por reserva</span>
+        <span><i className="hotel-guide-swatch cancelled" />Cancelada</span>
+        <small>A faixa começa no check-in e termina no check-out. Clique para ver detalhes.</small>
+      </div>
+      <div className="hotel-timeline-scroll" tabIndex="0" aria-label={`Linha do tempo de reservas em ${monthLabel(month)}. Role para os lados para ver todos os dias.`}>
+        <div className="hotel-timeline" style={{ '--hotel-days': days.length }}>
+          <div className="hotel-timeline-head">
+            <div className="hotel-timeline-corner"><strong>Quartos</strong><small>{roomList.length} {roomList.length === 1 ? 'quarto' : 'quartos'}</small></div>
+            {days.map((day) => <div className={`hotel-timeline-date${day.getDay() === 0 || day.getDay() === 6 ? ' weekend' : ''}${localDateKey(day) === localDateKey(today) ? ' today' : ''}`} key={localDateKey(day)}><span>{calendarWeekdays[day.getDay()]}</span><strong>{day.getDate()}</strong></div>)}
+          </div>
+          {roomList.length ? roomList.map((room) => {
+            const { segments, laneCount } = reservationMonthSegments(month, reservationsByRoom.get(room.id) || []);
+            return <div className="hotel-timeline-row" style={{ minHeight: `${Math.max(56, 14 + laneCount * 34)}px` }} key={room.id}>
+              <div className="hotel-timeline-room" title={`${room.name} · ${room.hotel.name}`}><strong>{room.name}</strong><small>{room.hotel.name}</small></div>
+              {days.map((day) => <div className={`hotel-timeline-cell${day.getDay() === 0 || day.getDay() === 6 ? ' weekend' : ''}${localDateKey(day) === localDateKey(today) ? ' today' : ''}`} key={localDateKey(day)} />)}
+              {segments.map(({ reservation, start, end, lane, startsHere, endsHere }) => (
+                <button type="button"
+                  className={`hotel-booking-bar tone-${reservationColorIndex(reservation.id || reservation.code)}${reservation.status === 'CANCELLED' ? ' cancelled' : ''}${startsHere ? ' starts-here' : ' continues-left'}${endsHere ? ' ends-here' : ' continues-right'}`}
+                  key={reservation.id || reservation.code}
+                  style={{ left: `${roomWidth + start * dayWidth + 2}px`, width: `${(end - start) * dayWidth - 4}px`, top: `${12 + lane * 34}px` }}
+                  onClick={() => onSelect(reservation)}
+                  title={`${reservation.guestName} · ${formatOnlyDate(reservation.checkIn)} a ${formatOnlyDate(reservation.checkOut)}${reservation.status === 'CANCELLED' ? ' · Cancelada' : ''}`}
+                  aria-label={`${reservation.status === 'CANCELLED' ? 'Reserva cancelada' : 'Reserva confirmada'} de ${reservation.guestName}, quarto ${room.name}, entrada ${formatOnlyDate(reservation.checkIn)}, saída ${formatOnlyDate(reservation.checkOut)}`}>
+                  <strong>{reservation.code || reservation.guestName}</strong>
+                  {reservation.code && <span>{reservation.guestName}</span>}
+                </button>
+              ))}
+            </div>;
+          }) : <div className="hotel-timeline-empty">Cadastre um quarto para visualizar as reservas no calendário.</div>}
+        </div>
       </div>
     </div>
   );

@@ -122,4 +122,20 @@
   --accent: #f28f86;
   --accent-soft: rgba(242, 143, 134, 0.16);
   --accent-glow: rgba(242, 143, 134, 0.3);
+  --hotel-booking-0: #a84345;
+  --hotel-booking-1: #985424;
+  --hotel-booking-2: #99465c;
+  --hotel-booking-3: #875c21;
+  --hotel-booking-4: #a34a37;
+  --hotel-booking-5: #88415f;
+}
+
+:root[data-theme='light'] .category-hotel,
+:root[data-theme='light'] .page-hotel {
+  --hotel-booking-0: #225f95;
+  --hotel-booking-1: #157483;
+  --hotel-booking-2: #565ea2;
+  --hotel-booking-3: #386b91;
+  --hotel-booking-4: #26777a;
+  --hotel-booking-5: #5b568f;
 }
