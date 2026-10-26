@@ -26,6 +26,25 @@
   margin-bottom: 8px;
 }
 
+.page-appointments .details-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+
+.page-appointments .edit-row {
+  grid-template-columns: minmax(140px, 170px) minmax(0, 1fr) auto;
+}
+
+.page-appointments .edit-row input {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .page-appointments .edit-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .hotel-tabs {
   display: flex;
   gap: 8px;

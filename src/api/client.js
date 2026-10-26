@@ -103,6 +103,11 @@ export const api = {
   createExamSchedule: (id, payload) => request(`/exam-types/${id}/schedules`, { method: 'POST', body: JSON.stringify(payload) }),
   deleteExamSchedule: (id, scheduleId) => request(`/exam-types/${id}/schedules/${scheduleId}`, { method: 'DELETE' }),
   examAvailability: (id, from, days = 7) => request(`/exam-types/${id}/availability?from=${from}&days=${days}`),
+  examAppointments: (filters = {}) => {
+    const query = cleanFilters(filters);
+    return request(`/exam-appointments${query ? `?${query}` : ''}`);
+  },
+  updateExamAppointment: (id, payload) => request(`/exam-appointments/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
 
   opportunities: (filters = {}) => {
     const query = cleanFilters(filters);
