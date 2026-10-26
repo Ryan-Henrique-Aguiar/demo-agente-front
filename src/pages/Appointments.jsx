@@ -9,7 +9,7 @@ import { DetailsModal } from '../components/DetailsModal.jsx';
 import { formatDate, formatOnlyDate } from '../utils/format.js';
 
 const medicalStatuses = ['', 'ABERTO', 'CONFIRMADO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO'];
-const examStatuses = ['', 'CONFIRMADO', 'CANCELADO'];
+const examStatuses = ['', 'ABERTO', 'CONFIRMADO', 'CANCELADO'];
 const emptyFilters = { status: '', specialtyId: '', doctorId: '', examTypeId: '', date: '' };
 const calendarWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
