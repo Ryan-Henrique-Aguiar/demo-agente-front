@@ -22,7 +22,12 @@ async function downloadFile(path, filename) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Erro HTTP ${response.status}`);
+    let message = text;
+    try {
+      const data = JSON.parse(text);
+      if (data.error) message = Array.isArray(data.error) ? data.error.join(' ') : data.error;
+    } catch { /* Respostas não JSON usam o texto original. */ }
+    throw new Error(message || `Erro HTTP ${response.status}`);
   }
 
   const blob = await response.blob();
@@ -54,7 +59,12 @@ async function request(path, options = {}) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Erro HTTP ${response.status}`);
+    let message = text;
+    try {
+      const data = JSON.parse(text);
+      if (data.error) message = Array.isArray(data.error) ? data.error.join(' ') : data.error;
+    } catch { /* Respostas não JSON usam o texto original. */ }
+    throw new Error(message || `Erro HTTP ${response.status}`);
   }
 
   if (response.status === 204) return null;
@@ -136,6 +146,7 @@ export const api = {
   ,createHotel: (payload) => request('/hotels', { method: 'POST', body: JSON.stringify(payload) })
   ,updateHotel: (id, payload) => request(`/hotels/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
   ,createHotelRoom: (hotelId, payload) => request(`/hotels/${hotelId}/rooms`, { method: 'POST', body: JSON.stringify(payload) })
+  ,updateHotelRoom: (hotelId, roomId, payload) => request(`/hotels/${hotelId}/rooms/${roomId}`, { method: 'PATCH', body: JSON.stringify(payload) })
   ,hotelAvailability: (payload) => request('/hotel-reservations/availability', { method: 'POST', body: JSON.stringify(payload) })
   ,hotelReservations: (filters = {}) => {
     const query = cleanFilters(filters);

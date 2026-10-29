@@ -10,7 +10,7 @@ import { formatDate, formatOnlyDate } from '../utils/format.js';
 import { reservationColorIndex, reservationMonthSegments } from '../utils/reservationCalendar.js';
 
 const emptyHotel = { name: '', city: '', state: '' };
-const emptyRoom = { name: '', description: '', price: '' };
+const emptyRoom = { name: '', description: '', price: '', isActive: true };
 const emptyReservation = { hotelId: '', roomId: '', guestName: '', email: '', phone: '', checkIn: '', checkOut: '' };
 const calendarWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -46,6 +46,7 @@ export function Hotel() {
   const [roomForm, setRoomForm] = useState(emptyRoom);
   const [reservationForm, setReservationForm] = useState(emptyReservation);
   const [editingHotel, setEditingHotel] = useState(null);
+  const [editingRoom, setEditingRoom] = useState(null);
   const [selectedReservation, setSelectedReservation] = useState(null);
 
   async function load() {
@@ -87,11 +88,23 @@ export function Hotel() {
     event.preventDefault();
     setError('');
     try {
-      await api.createHotelRoom(roomForm.hotelId, { name: roomForm.name, description: roomForm.description, price: Number(roomForm.price) });
+      const payload = { name: roomForm.name.trim(), description: roomForm.description.trim(), price: Number(roomForm.price), ...(editingRoom && { isActive: roomForm.isActive }) };
+      if (editingRoom) await api.updateHotelRoom(roomForm.hotelId, editingRoom, payload);
+      else await api.createHotelRoom(roomForm.hotelId, payload);
       setRoomForm(emptyRoom);
-      setNotice('Quarto cadastrado.');
+      setEditingRoom(null);
+      setNotice(editingRoom ? 'Quarto atualizado.' : 'Quarto cadastrado.');
       await load();
     } catch (err) { setError(err.message); }
+  }
+
+  function startRoomEdit(room) {
+    setEditingRoom(room.id);
+    setRoomForm({ hotelId: room.hotelId, name: room.name, description: room.description, price: String(room.price), isActive: room.isActive });
+    setError('');
+    setNotice('');
+    setTab('rooms');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function submitReservation(event) {
@@ -121,7 +134,7 @@ export function Hotel() {
       <LoadingError loading={loading} error={error} />
       {notice && <div className="notice hotel-notice">{notice}</div>}
       {tab === 'units' && <UnitsTab hotels={hotels} form={hotelForm} editingHotel={editingHotel} onChange={(name, value) => updateForm(setHotelForm, name, value)} onSubmit={submitHotel} onEdit={(hotel) => { setEditingHotel(hotel.id); setHotelForm({ name: hotel.name, city: hotel.city, state: hotel.state }); }} />}
-      {tab === 'rooms' && <RoomsTab rooms={rooms} hotels={hotels} form={roomForm} onChange={(name, value) => updateForm(setRoomForm, name, value)} onSubmit={submitRoom} />}
+      {tab === 'rooms' && <RoomsTab rooms={rooms} hotels={hotels} form={roomForm} editingRoom={editingRoom} onChange={(name, value) => updateForm(setRoomForm, name, value)} onSubmit={submitRoom} onEdit={startRoomEdit} onCancelEdit={() => { setEditingRoom(null); setRoomForm(emptyRoom); }} />}
       {tab === 'reservations' && <ReservationsTab reservations={reservations} hotels={hotels} rooms={rooms} form={reservationForm} onChange={(name, value) => updateForm(setReservationForm, name, value)} onSubmit={submitReservation} onCancel={cancelReservation} onSelect={setSelectedReservation} />}
       {selectedReservation && (
         <DetailsModal title={selectedReservation.guestName} eyebrow={selectedReservation.code} onClose={() => setSelectedReservation(null)}>
@@ -146,8 +159,8 @@ function UnitsTab({ hotels, form, editingHotel, onChange, onSubmit, onEdit }) {
   return <><form className="hotel-form" onSubmit={onSubmit}><h2>{editingHotel ? 'Editar unidade' : 'Nova unidade'}</h2><input required placeholder="Nome do hotel" value={form.name} onChange={(e) => onChange('name', e.target.value)} /><input required placeholder="Cidade" value={form.city} onChange={(e) => onChange('city', e.target.value)} /><input required maxLength="2" placeholder="Estado (UF)" value={form.state} onChange={(e) => onChange('state', e.target.value.toUpperCase())} /><button className="primary"><Save size={16} />{editingHotel ? 'Salvar alterações' : 'Cadastrar unidade'}</button></form><div className="card-list">{!hotels.length ? <EmptyState /> : hotels.map((hotel) => <article className="data-card" key={hotel.id}><div className="card-top"><div><strong>{hotel.code}</strong><h3>{hotel.name}</h3></div><button className="icon-button" title="Editar unidade" onClick={() => onEdit(hotel)}><Pencil size={16} /></button></div><div className="details-grid"><span>Localização <b>{hotel.city} - {hotel.state}</b></span><span>Quartos <b>{hotel.rooms?.length || 0}</b></span><span>Cadastrado em <b>{formatDate(hotel.createdAt)}</b></span></div></article>)}</div></>;
 }
 
-function RoomsTab({ rooms, hotels, form, onChange, onSubmit }) {
-  return <><form className="hotel-form" onSubmit={onSubmit}><h2>Novo quarto</h2><select required value={form.hotelId || ''} onChange={(e) => onChange('hotelId', e.target.value)}><option value="">Escolha a unidade</option>{hotels.map((hotel) => <option key={hotel.id} value={hotel.id}>{hotel.name} ({hotel.code})</option>)}</select><input required placeholder="Nome do quarto" value={form.name} onChange={(e) => onChange('name', e.target.value)} /><textarea required placeholder="Descrição" value={form.description} onChange={(e) => onChange('description', e.target.value)} /><input required min="0" step="0.01" type="number" placeholder="Preço da diária" value={form.price} onChange={(e) => onChange('price', e.target.value)} /><button className="primary"><Plus size={16} />Cadastrar quarto</button></form><div className="card-list">{!rooms.length ? <EmptyState /> : rooms.map((room) => <article className="data-card" key={room.id}><div className="card-top"><div><strong>{room.hotel.code}</strong><h3>{room.name}</h3></div><span className="badge">{money(room.price)}/noite</span></div><div className="details-grid"><span>Unidade <b>{room.hotel.name}</b></span><span>Descrição <b>{room.description}</b></span><span>Status <b>{room.isActive ? 'Ativo' : 'Inativo'}</b></span></div></article>)}</div></>;
+function RoomsTab({ rooms, hotels, form, editingRoom, onChange, onSubmit, onEdit, onCancelEdit }) {
+  return <><form className="hotel-form" onSubmit={onSubmit}><h2>{editingRoom ? 'Editar quarto' : 'Novo quarto'}</h2><select required disabled={Boolean(editingRoom)} value={form.hotelId || ''} onChange={(e) => onChange('hotelId', e.target.value)} aria-label="Unidade do quarto"><option value="">Escolha a unidade</option>{hotels.map((hotel) => <option key={hotel.id} value={hotel.id}>{hotel.name} ({hotel.code})</option>)}</select><input required placeholder="Nome do quarto" aria-label="Nome do quarto" value={form.name} onChange={(e) => onChange('name', e.target.value)} /><textarea required placeholder="Descrição" aria-label="Descrição do quarto" value={form.description} onChange={(e) => onChange('description', e.target.value)} /><input required min="0" step="0.01" type="number" placeholder="Preço da diária" aria-label="Preço da diária" value={form.price} onChange={(e) => onChange('price', e.target.value)} />{editingRoom && <select value={String(form.isActive)} onChange={(e) => onChange('isActive', e.target.value === 'true')} aria-label="Status do quarto"><option value="true">Ativo</option><option value="false">Inativo</option></select>}<button className="primary">{editingRoom ? <Save size={16} /> : <Plus size={16} />}{editingRoom ? 'Salvar alterações' : 'Cadastrar quarto'}</button>{editingRoom && <button type="button" className="secondary" onClick={onCancelEdit}>Cancelar edição</button>}</form><div className="card-list">{!rooms.length ? <EmptyState /> : rooms.map((room) => <article className="data-card" key={room.id}><div className="card-top"><div><strong>{room.hotel.code}</strong><h3>{room.name}</h3></div><div className="card-top-actions"><span className="badge">{money(room.price)}/noite</span><button type="button" className="icon-button" title="Editar quarto" aria-label={`Editar quarto ${room.name}`} onClick={() => onEdit(room)}><Pencil size={16} /></button></div></div><div className="details-grid"><span>Unidade <b>{room.hotel.name}</b></span><span>Descrição <b>{room.description}</b></span><span>Status <b>{room.isActive ? 'Ativo' : 'Inativo'}</b></span></div></article>)}</div></>;
 }
 
 function ReservationsTab({ reservations, hotels, rooms, form, onChange, onSubmit, onCancel, onSelect }) {

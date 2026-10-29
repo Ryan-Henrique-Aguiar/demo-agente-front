@@ -1025,3 +1025,44 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 700px) {
+  .metric-grid,
+  .metric-grid-wide { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+  .metric-card,
+  .hero-card,
+  .data-card,
+  .empty-state,
+  .notice { padding: 14px; border-radius: 16px; }
+
+  .metric-card { gap: 5px; }
+  .metric-icon { width: 34px; height: 34px; margin-bottom: 2px; border-radius: 10px; }
+  .metric-icon svg { width: 19px; height: 19px; }
+  .metric-card span { font-size: 12px; line-height: 1.25; }
+  .metric-card strong { font-size: 25px; }
+  .hero-card h2 { font-size: 18px; }
+  .hero-card p { margin-bottom: 0; font-size: 14px; line-height: 1.45; }
+
+  .card-list { gap: 10px; }
+  .card-top { gap: 8px; margin-bottom: 11px; }
+  .card-top h3 { font-size: 18px; line-height: 1.2; }
+  .card-top strong { font-size: 11px; }
+  .badge { padding: 5px 8px; font-size: 10px; }
+  .details-grid { gap: 7px; margin-bottom: 10px; }
+  .details-grid span { font-size: 12px; }
+  .actions-row { gap: 7px; margin-top: 10px; }
+  .actions-row button { padding: 8px 10px; font-size: 12px; border-radius: 10px; }
+  .filters,
+  .search-box { gap: 8px; margin-bottom: 14px; }
+  .filters label { font-size: 12px; }
+  .filters select,
+  .filters input,
+  .search-box input,
+  .search-box select { min-width: 0; max-width: 100%; }
+  .search-box input { flex-basis: 100%; }
+  .search-box button,
+  .primary,
+  .secondary { padding: 9px 12px; font-size: 13px; }
+  .reason { padding: 10px; border-radius: 10px; font-size: 13px; }
+}

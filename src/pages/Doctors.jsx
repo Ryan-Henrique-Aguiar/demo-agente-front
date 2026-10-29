@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarSearch, RefreshCcw, Save, X, Settings, Trash2, Plus } from 'lucide-react';
+import { CalendarSearch, Pencil, RefreshCcw, Save, X, Settings, Trash2, Plus } from 'lucide-react';
 import { api } from '../api/client.js';
 import { PageHeader } from '../components/PageHeader.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
@@ -7,13 +7,17 @@ import { LoadingError } from '../components/LoadingError.jsx';
 import { activeText, formatDate, formatOnlyDate, weekdayText } from '../utils/format.js';
 
 const WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+const emptyDoctor = { name: '', crm: '', specialtyId: '', isActive: true };
 
 export function Doctors() {
   const [items, setItems] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [specialtyId, setSpecialtyId] = useState('');
   const [isActive, setIsActive] = useState('true');
-  const [form, setForm] = useState({ name: '', crm: '', specialtyId: '' });
+  const [form, setForm] = useState(emptyDoctor);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState('');
   const [availabilityDate, setAvailabilityDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -45,12 +49,30 @@ export function Doctors() {
     }
   }
 
-  async function create(e) {
+  async function saveDoctor(e) {
     e.preventDefault();
     if (!form.name.trim() || !form.crm.trim() || !form.specialtyId) return;
-    await api.createDoctor({ name: form.name.trim(), crm: form.crm.trim(), specialtyId: form.specialtyId });
-    setForm({ name: '', crm: '', specialtyId: '' });
-    await load();
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      const payload = { name: form.name.trim(), crm: form.crm.trim(), specialtyId: form.specialtyId, ...(editingId && { isActive: form.isActive }) };
+      if (editingId) await api.updateDoctor(editingId, payload);
+      else await api.createDoctor(payload);
+      setNotice(editingId ? 'Médico atualizado.' : 'Médico cadastrado.');
+      setForm(emptyDoctor);
+      setEditingId(null);
+      await load();
+    } catch (err) { setError(err.message); }
+    finally { setSaving(false); }
+  }
+
+  function startEdit(doctor) {
+    setEditingId(doctor.id);
+    setForm({ name: doctor.name, crm: doctor.crm || '', specialtyId: doctor.specialtyId, isActive: doctor.isActive });
+    setError('');
+    setNotice('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function closePanel() {
@@ -154,14 +176,18 @@ export function Doctors() {
         action={<button className="primary" onClick={load}><RefreshCcw size={16} />Atualizar</button>}
       />
 
-      <form className="search-box" onSubmit={create}>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome do médico" />
-        <input value={form.crm} onChange={(e) => setForm({ ...form, crm: e.target.value })} placeholder="CRM" />
-        <select value={form.specialtyId} onChange={(e) => setForm({ ...form, specialtyId: e.target.value })}>
+      <form className="search-box doctor-form" onSubmit={saveDoctor}>
+        <h2>{editingId ? 'Editar médico' : 'Novo médico'}</h2>
+        <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome do médico" aria-label="Nome do médico" />
+        <input required value={form.crm} onChange={(e) => setForm({ ...form, crm: e.target.value })} placeholder="CRM" aria-label="CRM" />
+        <select required value={form.specialtyId} onChange={(e) => setForm({ ...form, specialtyId: e.target.value })} aria-label="Especialidade do médico">
           <option value="">Especialidade</option>
           {activeSpecialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          {editingId && !activeSpecialties.some((item) => item.id === form.specialtyId) && <option value={form.specialtyId}>{items.find((item) => item.id === editingId)?.specialty?.name || 'Especialidade atual'}</option>}
         </select>
-        <button><Save size={16} />Cadastrar</button>
+        {editingId && <select value={String(form.isActive)} onChange={(e) => setForm({ ...form, isActive: e.target.value === 'true' })} aria-label="Status do médico"><option value="true">Ativo</option><option value="false">Inativo</option></select>}
+        <button disabled={saving}><Save size={16} />{editingId ? 'Salvar alterações' : 'Cadastrar'}</button>
+        {editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyDoctor); }}>Cancelar edição</button>}
       </form>
 
       <div className="filters">
@@ -181,6 +207,7 @@ export function Doctors() {
       </div>
 
       <LoadingError loading={loading} error={error} />
+      {notice && <div className="notice hotel-notice" role="status">{notice}</div>}
       {!loading && !items.length && <EmptyState />}
       <div className="card-list">
         {items.map((item) => {
@@ -198,6 +225,7 @@ export function Doctors() {
                 <span>Atualizado em <b>{formatDate(item.updatedAt)}</b></span>
               </div>
               <div className="actions-row">
+                <button onClick={() => startEdit(item)}><Pencil size={15} />Editar cadastro</button>
                 <button onClick={() => toggleAvailability(item)}><CalendarSearch size={15} />Ver disponibilidade</button>
                 <button onClick={() => toggleSchedule(item)}><Settings size={15} />Gerenciar grade</button>
               </div>

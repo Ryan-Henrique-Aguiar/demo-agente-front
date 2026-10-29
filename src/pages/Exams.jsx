@@ -55,7 +55,7 @@ export function Exams() {
     event.preventDefault();
     await run(async () => {
       if (editingId) {
-        await api.updateExamType(editingId, { name: form.name.trim(), preparation: form.preparation.trim() });
+        await api.updateExamType(editingId, { name: form.name.trim(), durationMinutes: Number(form.durationMinutes), preparation: form.preparation.trim() });
       } else {
         await api.createExamType({ name: form.name.trim(), durationMinutes: Number(form.durationMinutes), preparation: form.preparation.trim() });
       }
@@ -102,7 +102,7 @@ export function Exams() {
       <form className="hotel-form" onSubmit={saveExam}>
         <h2>{editingId ? 'Editar tipo de exame' : 'Novo tipo de exame'}</h2>
         <label>Nome<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Ex.: Hemograma completo" /></label>
-        <label>Duração por agendamento (min)<input type="number" min="5" max="120" step="5" required disabled={Boolean(editingId)} value={form.durationMinutes} onChange={(event) => setForm({ ...form, durationMinutes: event.target.value })} /></label>
+        <label>Duração por agendamento (min)<input type="number" min="5" max="120" step="5" required value={form.durationMinutes} onChange={(event) => setForm({ ...form, durationMinutes: event.target.value })} /></label>
         <label className="exam-preparation">Preparo / orientações<textarea value={form.preparation} onChange={(event) => setForm({ ...form, preparation: event.target.value })} placeholder="Orientação a confirmar com a unidade" /></label>
         <button className="primary" disabled={busy}><Save size={16} />{editingId ? 'Salvar' : 'Cadastrar'}</button>
         {editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyExam); }}>Cancelar edição</button>}

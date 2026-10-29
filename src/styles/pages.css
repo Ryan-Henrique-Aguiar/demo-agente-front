@@ -39,7 +39,7 @@
   width: 100%;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   .page-appointments .edit-row {
     grid-template-columns: 1fr;
   }
@@ -112,6 +112,25 @@
   min-height: 44px;
 }
 
+.doctor-form h2 {
+  width: 100%;
+  margin: 0 0 2px;
+  font-size: 18px;
+}
+
+.doctor-form .secondary {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: none;
+}
+
+.card-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .hotel-notice {
   color: #117943;
   background: #e7f8ef;
@@ -163,7 +182,7 @@
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   .hotel-form {
     grid-template-columns: 1fr;
   }
@@ -175,4 +194,9 @@
   .hotel-tabs {
     overflow-x: auto;
   }
+
+  .hotel-form { gap: 9px; padding: 12px; margin-bottom: 14px; }
+  .hotel-form h2 { font-size: 16px; }
+  .hotel-tabs button { padding: 9px 11px; font-size: 13px; }
+  .card-top-actions { flex-wrap: wrap; justify-content: flex-end; }
 }
